@@ -25,7 +25,7 @@ def run(env, agent, fps=60, is_render=True, is_train=False):
         if is_train:
             agent.remember(state, action, next_state, reward, done)
             agent.replay()
-            agent.update_target_network()
+            agent.update_target_network(0.1)
         state = next_state
 
         while time.time() - t1 < 1.0 / fps:
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         epsilon=1.0, epsilon_decay=0.99995, epsilon_min=0.0,
         learning_rate=0.00025, batch_size=32
     )
-    _is_train = False
+    _is_train = True
 
     if _is_train:
         _history = []
