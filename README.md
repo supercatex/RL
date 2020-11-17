@@ -1,7 +1,7 @@
 # 01-CartPole-v1
 <table>
 <tr>
-<td width="50%"><img src="https://github.com/supercatex/RL/blob/main/01-CartPole-v1/images/CartPole-v1-history.PNG?raw=true"></td>
+<td width="34%"><img src="https://github.com/supercatex/RL/blob/main/01-CartPole-v1/images/CartPole-v1-history.PNG?raw=true"></td>
 <td><img src="https://github.com/supercatex/RL/blob/main/01-CartPole-v1/images/CartPole-v1-200.gif?raw=true"></td>
 <td><img src="https://github.com/supercatex/RL/blob/main/01-CartPole-v1/images/CartPole-v1-400.gif?raw=true"></td>
 </tr>
