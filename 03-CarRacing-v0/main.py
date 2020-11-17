@@ -1,31 +1,65 @@
 import gym
+from pyglet.window import key
 from tools.RL import *
 import matplotlib.pyplot as plt
 import time
+import cv2
+
+
+def key_release(k, mod):
+    if k == key.ESCAPE:
+        pass
 
 
 def run(env, agent, fps=60, is_render=True, is_train=False):
-    state = env.reset()
+    frames = deque(maxlen=4)
+    for i in range(frames.maxlen):
+        frames.append(np.zeros(agent.in_shape[:2]))
+    env.reset()
+
+    action_list = (
+        (-1.0, 0.0, 0.0),
+        (0.0, 1.0, 0.0),
+        (1.0, 0.0, 0.0)
+    )
     action, done = None, False
+
     total_frames = 0
     score = 0.0
+    negative_reward_times = 0
     t1 = time.time()
     while not done:
         if is_render:
             env.render()
+            if total_frames == 0:
+                env.viewer.window.on_key_release = key_release
+                env.reset()
 
+        state = np.transpose(np.array(frames), (1, 2, 0))
         action = agent.get_action(state)
 
-        next_state, reward, done, info = env.step(action)
-        reward = 0.0
-        if done:
+        next_frame, reward, done, info = env.step(action_list[action])
+        negative_reward_times = 0 if reward > 0 else negative_reward_times + 1
+        if negative_reward_times > 25:
+            done = True
             reward = -1.0
+        elif reward <= 0:
+            reward = -0.1
+        else:
+            reward = 0.01
         score += reward
 
+        img = cv2.cvtColor(next_frame, cv2.COLOR_RGB2GRAY)
+        img = img[48-20:48+20, 48-20:48+20]
+        cv2.imshow("frame", img)
+        cv2.waitKey(1)
+        img = cv2.resize(img, (agent.in_shape[1], agent.in_shape[0]))
+        img = np.array(img, dtype=np.float32) / 255
+        frames.append(img)
+        next_state = np.transpose(np.array(frames), (1, 2, 0))
         if is_train:
             agent.remember(state, action, next_state, reward, done)
             agent.replay()
-        state = next_state
 
         while time.time() - t1 < 1.0 / fps:
             time.sleep(0.001)
@@ -39,8 +73,8 @@ if __name__ == "__main__":
     _env_name = "CarRacing-v0"
     _env = gym.make(_env_name)
     _agent = DeepQLearning(
-        in_shape=(_env.observation_space.shape[0],),
-        out_size=_env.action_space.n,
+        in_shape=(40, 40, 4),
+        out_size=3,
         memory_size=10000, min_memory_size=1000,
         epsilon=1.0, epsilon_decay=0.99998, epsilon_min=0.1,
         learning_rate=0.00025, batch_size=32
