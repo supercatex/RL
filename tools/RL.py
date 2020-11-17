@@ -34,6 +34,7 @@ class DeepQLearning(object):
         self.memory = deque(maxlen=memory_size)
         self.min_memory_size = min_memory_size
         self.q_model: models.Model = self.build_model()
+        self.t_model: models.Model = self.build_model()
 
     def build_model(self) -> models.Model:
         x_in = layers.Input(self.in_shape, name="State")
@@ -81,6 +82,10 @@ class DeepQLearning(object):
 
     def load_weights(self, path):
         self.q_model.load_weights(path, by_name=True)
+        self.update_target_network()
+
+    def update_target_network(self):
+        self.t_model.set_weights(self.q_model.get_weights())
 
     def get_valid_actions(self) -> List[int]:
         valid_actions: List[int] = []
@@ -130,10 +135,18 @@ class DeepQLearning(object):
         r1 = np.array(r1, dtype=np.float32)
         done = np.array(done, dtype=np.bool)
 
-        t0 = np.array(self.q_model.predict(s0), dtype=np.float32)
-        t1 = np.array(self.q_model.predict(s1), dtype=np.float32)
-        t0[range(self.batch_size), a0] = r1 + self.gamma * np.max(t1, axis=1) * np.invert(done)
-        self.q_model.fit(s0, t0, epochs=1, verbose=0)
+        q0 = np.array(self.q_model.predict(s0), dtype=np.float32)
+        q1 = np.array(self.q_model.predict(s1), dtype=np.float32)
+
+        # DQN
+        # q0[range(self.batch_size), a0] = r1 + self.gamma * np.max(q1, axis=1) * np.invert(done)
+
+        # Double-DQN
+        t1 = np.array(self.t_model.predict(s1), dtype=np.float32)
+        value = t1[range(self.batch_size), np.argmax(q1, axis=1)]
+        q0[range(self.batch_size), a0] = r1 + self.gamma * value * np.invert(done)
+
+        self.q_model.fit(s0, q0, initial_epoch=0, epochs=1, verbose=0)
 
 
 class DoubleDQN(object):
