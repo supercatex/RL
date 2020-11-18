@@ -22,7 +22,8 @@ def run(env, agent, fps=60, is_render=True, is_train=False):
     action_list = (
         (-1.0, 0.0, 0.0),
         (0.0, 1.0, 0.0),
-        (1.0, 0.0, 0.0)
+        (1.0, 0.0, 0.0),
+        (0.0, 0.0, 0.2)
     )
     action, done = None, False
 
@@ -48,7 +49,7 @@ def run(env, agent, fps=60, is_render=True, is_train=False):
         elif reward <= 0:
             reward = -0.01
         else:
-            reward = 0.01
+            reward = 0.1
         score += reward
 
         img = cv2.cvtColor(next_frame, cv2.COLOR_RGB2GRAY)
@@ -77,12 +78,12 @@ if __name__ == "__main__":
     _env = gym.make(_env_name)
     _agent = DeepQLearning(
         in_shape=(40, 40, 4),
-        out_size=3,
+        out_size=4,
         memory_size=10000, min_memory_size=1000,
         epsilon=1.0, epsilon_decay=0.99998, epsilon_min=0.0,
         learning_rate=0.00025, batch_size=32, with_cnn=True
     )
-    _is_train = True
+    _is_train = False
 
     if _is_train:
         _history = []
