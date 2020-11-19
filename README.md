@@ -11,3 +11,5 @@
 <td><img src="https://github.com/supercatex/RL/blob/main/01-CartPole-v1/images/CartPole-v1-1000.gif?raw=true"></td>
 </tr>
 </table>
+
+https://arxiv.org/pdf/1810.06339v1.pdf
